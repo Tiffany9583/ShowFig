@@ -39,6 +39,7 @@ ui <- fluidPage(
         id = "tabs",
         tabPanel(
           title = "Box plot",
+          # PCA plot==================================
           p(
             "If you want a sample .csv or .tsv file to upload,",
             "you can first download the sample",
@@ -48,19 +49,17 @@ ui <- fluidPage(
           ),
           # Output: Data file ----
           DT::dataTableOutput("contents"),
-
-          # ========================================
           p("Step 2. Select X-axis and Y-axis"),
           uiOutput("selectX"),
           uiOutput("selectY"),
           fluidRow(
-            actionButton("Plot", "Step 4. Plot box", class = "btn-block")
+            actionButton("Plot", "Step 3. Plot box", class = "btn-block")
           ),
           # Output:  Figure ----
           plotOutput("showplot", brush = "plot_brush"),
           # Download
           radioButtons(
-            "DownloadOption", "Step 5. Select options for download.",
+            "DownloadOption", "Step 4. Select options for download.",
             # c("png", "jpeg", "pdf")
             c("png", "jpeg")
           ),
@@ -68,7 +67,7 @@ ui <- fluidPage(
         ),
         tabPanel(
           # PCR plot========================================
-          title = "PCR plot",
+          title = "PCA plot",
           p(
             "If you want a sample .csv ,",
             "please download the sample",
@@ -94,11 +93,43 @@ ui <- fluidPage(
 
           # Download
           radioButtons(
-            "DownloadOption", "Step 5. Select options for download.",
+            "DownloadOption_PCA", "Step 5. Select options for download.",
             # c("png", "jpeg", "pdf")
             c("png", "jpeg")
           ),
           downloadButton("downloadPlot_PCA")
+        ),
+        tabPanel(
+          # regression plot========================================
+          title = "Regression plot",
+          p(
+            "If you want a sample .csv ,",
+            "please download the sample",
+            a(href = "https://drive.google.com/file/d/1KKELOxQAyu0fsLJ2MMCY9Wd2ETPhDqET/view?usp=sharing", "Example.csv"),
+            "files, and then try to upload your data after modifying it."
+          ),
+          # Output: Data file ----
+          DT::dataTableOutput("Re_contents"),
+          p("Step 2. Select X-axis and Y-axis"),
+          uiOutput("Re_selectX"),
+          uiOutput("Re_selectY"),
+          # Select groups
+          p("Step 3. Select the groups."),
+          uiOutput("Re_select_groups"),
+          fluidRow(
+            actionButton("Re_Plot", "Step 4. Plot Regression", class = "btn-block")
+          ),
+
+
+          # Output:  Figure ----
+          plotOutput("Re_showplot", brush = "plot_brush"),
+          # Download
+          radioButtons(
+            "Re_DownloadOption", "Step 5. Select options for download.",
+            # c("png", "jpeg", "pdf")
+            c("png", "jpeg")
+          ),
+          downloadButton("Re_downloadPlot")
         )
       )
     )
