@@ -57,6 +57,78 @@ server <- function(input, output, session) {
       ggsave(file, plot = plotInput(), device = device)
     }
   )
+  # regression plot==================================
+  rv <- reactiveValues(data = NULL)
+
+  output$Re_contents <- DT::renderDataTable({
+    inFile <- input$file1
+
+    if (is.null(inFile)) {
+      return(NULL)
+    }
+
+    rv$data <- read.csv(inFile$datapath,
+      header = input$header,
+      sep = input$sep, quote = input$quote, fileEncoding = "UTF-8-BOM"
+    )
+    # rv$data <- read.csv(inFile$datapath, header = TRUE, sep = ",", fileEncoding = "UTF-8-BOM")
+  })
+
+  output$Re_selectX <- renderUI({
+    req(rv$data)
+    selectInput(inputId = "Re_selectX", label = "select X-axis", choices = names(rv$data))
+  })
+
+  output$Re_selectY <- renderUI({
+    req(rv$data)
+    selectInput(inputId = "Re_selectY", label = "select Y-axis", choices = names(rv$data))
+  })
+
+  output$Re_select_groups <- renderUI({
+    req(rv$data)
+    selectInput(inputId = "Re_select_groups", label = "select groups", choices = names(rv$data))
+  })
+
+  Re_plotInput <- function() {
+    req(rv$data)
+    Re_data <- rv$data
+    groups <- as.factor(Re_data[, input$Re_select_groups])
+    Re_data <- data.frame(
+      groups = Re_data[, input$Re_select_groups],
+      x = Re_data[, input$Re_selectX],
+      y = Re_data[, input$Re_selectY]
+    )
+
+    print(Re_data)
+
+    ggplot(Re_data, aes(x, y)) +
+      geom_point(aes(colour = groups), size = 3) +
+      geom_smooth(method = "lm") +
+      theme_classic() +
+      # geom_text(aes(label = Name)) +
+      xlab(input$Re_selectX) +
+      ylab(input$Re_selectY) +
+      labs(color = input$Re_select_groups)
+  }
+
+  observeEvent(input$Re_Plot, {
+    output$Re_showplot <- renderPlot(
+      {
+        Re_plotInput()
+      },
+      res = 96
+    )
+  })
+
+  output$Re_downloadPlot <- downloadHandler(
+    filename = function() {
+      paste("Plot", input$Re_DownloadOption, sep = ".")
+    },
+    content <- function(file) {
+      device <- function(..., width, height) grDevices::png(..., width = width, height = height, res = 300, units = "in")
+      ggsave(file, plot = Re_plotInput(), device = device)
+    }
+  )
 
   # PCA plot==================================
   # read data and show table
@@ -137,92 +209,9 @@ server <- function(input, output, session) {
     filename = function() {
       paste("Plot", input$DownloadOption_PCA, sep = ".")
     },
-    # if (input$DownloadOption == "pdf") {
-    #   pdf(filename)
-    #   print(plotInput())
-    #   dev.off()
-    # } else {
     content <- function(file) {
       device <- function(..., width, height) grDevices::png(..., width = width, height = height, res = 300, units = "in")
       ggsave(file, plot = plotInput_PCA(), device = device)
-    }
-  )
-
-  # regression plot==================================
-  rv <- reactiveValues(data = NULL)
-
-  output$Re_contents <- DT::renderDataTable({
-    inFile <- input$file1
-
-    if (is.null(inFile)) {
-      return(NULL)
-    }
-
-    rv$data <- read.csv(inFile$datapath,
-      header = input$header,
-      sep = input$sep, quote = input$quote, fileEncoding = "UTF-8-BOM"
-    )
-    # rv$data <- read.csv(inFile$datapath, header = TRUE, sep = ",", fileEncoding = "UTF-8-BOM")
-  })
-
-  output$Re_selectX <- renderUI({
-    req(rv$data)
-    selectInput(inputId = "Re_selectX", label = "select X-axis", choices = names(rv$data))
-  })
-
-  output$Re_selectY <- renderUI({
-    req(rv$data)
-    selectInput(inputId = "Re_selectY", label = "select Y-axis", choices = names(rv$data))
-  })
-
-  output$Re_select_groups <- renderUI({
-    req(rv$data)
-    selectInput(inputId = "Re_select_groups", label = "select groups", choices = names(rv$data))
-  })
-
-  Re_plotInput <- function() {
-    req(rv$data)
-    Re_data <- rv$data
-    groups <- as.factor(Re_data[, input$Re_select_groups])
-    Re_data <- data.frame(
-      groups = Re_data[, input$Re_select_groups],
-      x = Re_data[, input$Re_selectX],
-      y = Re_data[, input$Re_selectY]
-    )
-
-    print(Re_data)
-
-    ggplot(Re_data, aes(x, y)) +
-      geom_point(aes(colour = groups), size = 3) +
-      geom_smooth(method = "lm") +
-      theme_classic() +
-      # geom_text(aes(label = Name)) +
-      xlab(input$Re_selectX) +
-      ylab(input$Re_selectY) +
-      labs(color = input$Re_select_groups)
-  }
-
-  observeEvent(input$Re_Plot, {
-    output$Re_showplot <- renderPlot(
-      {
-        Re_plotInput()
-      },
-      res = 96
-    )
-  })
-
-  output$Re_downloadPlot <- downloadHandler(
-    filename = function() {
-      paste("Plot", input$Re_DownloadOption, sep = ".")
-    },
-    # if (input$DownloadOption == "pdf") {
-    #   pdf(filename)
-    #   print(plotInput())
-    #   dev.off()
-    # } else {
-    content <- function(file) {
-      device <- function(..., width, height) grDevices::png(..., width = width, height = height, res = 300, units = "in")
-      ggsave(file, plot = Re_plotInput(), device = device)
     }
   )
 }
